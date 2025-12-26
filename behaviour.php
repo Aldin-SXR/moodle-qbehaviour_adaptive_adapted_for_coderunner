@@ -99,7 +99,20 @@ class qbehaviour_adaptive_adapted_for_coderunner extends qbehaviour_adaptive {
             return get_string('precheckresults', 'qbehaviour_adaptive_adapted_for_coderunner');
         }
 
-        return parent::get_state_string($showcorrectness);
+        // If question has been checked (has raw fraction), show the actual result if showcorrectness is true
+        // This works for both todo and complete states in adaptive mode
+        if ($showcorrectness) {
+            $rawfraction = $laststep->get_behaviour_var('_rawfraction');
+            $currentstate = $this->qa->get_state();
+            if ($rawfraction !== null) {
+                $state = question_state::graded_state_for_fraction($rawfraction);
+                $result = $state->default_string(true);
+                return $result;
+            }
+        }
+
+        $parent_result = parent::get_state_string($showcorrectness);
+        return $parent_result;
     }
 
 
@@ -187,9 +200,9 @@ class qbehaviour_adaptive_adapted_for_coderunner extends qbehaviour_adaptive {
             return question_attempt::KEEP;
         }
 
-        if ($prevstep->get_state() == question_state::$complete) {
-            $pendingstep->set_state(question_state::$complete);
-        } else if ($state == question_state::$gradedright && !$isprecheck) {
+        // Set state based on the grading result
+        // Only set to complete if graded right, otherwise set to todo (to keep button white/editable)
+        if ($state == question_state::$gradedright && !$isprecheck) {
             $pendingstep->set_state(question_state::$complete);
         } else {
             $pendingstep->set_state(question_state::$todo);

@@ -69,14 +69,14 @@ class qbehaviour_adaptive_adapted_for_coderunner_renderer extends qbehaviour_ada
             'name' => $qa->get_behaviour_field_name('precheck'),
             'value' => get_string('precheck', 'qbehaviour_adaptive_adapted_for_coderunner'),
             'class' => 'submit btn btn-secondary',
+            'data-savescrollposition' => 'true',
         );
         if ($options->readonly) {
             $attributes['disabled'] = 'disabled';
         }
         $output = html_writer::empty_tag('input', $attributes);
         if (!$options->readonly) {
-            $this->page->requires->js_init_call('M.core_question_engine.init_submit_button',
-                    array($attributes['id'], $qa->get_slot()));
+            $this->page->requires->js_call_amd('core_question/question_engine', 'initSubmitButton', [$attributes['id']]);
         }
         return $output;
     }
@@ -98,14 +98,14 @@ class qbehaviour_adaptive_adapted_for_coderunner_renderer extends qbehaviour_ada
             'name' => $qa->get_behaviour_field_name('finish'),
             'value' => get_string('giveup', 'qbehaviour_adaptive_adapted_for_coderunner'),
             'class' => 'submit btn btn-danger mx-0',
+            'data-savescrollposition' => 'true',
         );
         if ($options->readonly) {
             $attributes['disabled'] = 'disabled';
         }
         $output = html_writer::empty_tag('input', $attributes);
         if (!$options->readonly) {
-            $this->page->requires->js_init_call('M.core_question_engine.init_submit_button',
-                    array($attributes['id'], $qa->get_slot()));
+            $this->page->requires->js_call_amd('core_question/question_engine', 'initSubmitButton', [$attributes['id']]);
         }
         return $output;
     }

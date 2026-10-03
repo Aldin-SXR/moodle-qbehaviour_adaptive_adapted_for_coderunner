@@ -19,6 +19,9 @@ For full install instructions, see the
 [CodeRunner install instructions](https://github.com/trampgeek/moodle-qtype_coderunner/blob/master/Readme.md).
 
 ## CHANGE HISTORY
+24/09/26. V1.4.8. Security hardening: restrict the legacy unserialize() fallback for cached test
+outcomes to its expected classes, to prevent PHP object-injection via crafted serialised data
+(e.g. planted in a restored backup).
 10/08/26. V1.4.7. Bug fix: when grading failed because the sandbox was unreachable or crashed
 (question state $invalid), get_state_string() was deriving a status purely from the raw
 fraction of the last try, wrongly reporting "Incorrect" even though no grading had actually

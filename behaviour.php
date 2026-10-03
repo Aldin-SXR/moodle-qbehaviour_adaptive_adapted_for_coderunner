@@ -47,6 +47,21 @@ use qtype_coderunner\constants;
 require_once($CFG->dirroot . '/question/behaviour/adaptive/behaviour.php');
 
 class qbehaviour_adaptive_adapted_for_coderunner extends qbehaviour_adaptive {
+    /**
+     * Classes that may legitimately occur within a serialised
+     * qtype_coderunner_testing_outcome, for use as the allowed_classes option
+     * to unserialize() when the installed coderunner version predates
+     * qtype_coderunner_question::unserialize_outcome() (the legacy case).
+     * Kept in sync with the equivalent list in that method.
+     */
+    const ALLOWED_OUTCOME_CLASSES = [
+        'qtype_coderunner_testing_outcome',
+        'qtype_coderunner_combinator_grader_outcome',
+        'qtype_coderunner_test_result',
+        'qtype_coderunner_html_wrapper',
+        'core_table\output\html_table',
+    ];
+
     /** @var bool Whether penalties are enabled for this question. */
     public $penaltiesenabled;
 
@@ -108,7 +123,15 @@ class qbehaviour_adaptive_adapted_for_coderunner extends qbehaviour_adaptive {
         if ($this->qa->get_state() == question_state::$invalid) {
             $testoutcomeserialised = $laststep->get_qt_var('_testoutcome');
             if ($testoutcomeserialised) {
-                $testoutcome = @unserialize($testoutcomeserialised);
+                // Unserialise with question's code if it's a sufficiently recent coderunner version,
+                // otherwise use PHP's standard unserialize (the legacy case).
+                if (method_exists($this->question, 'unserialize_outcome')) {
+                    $testoutcome = $this->question->unserialize_outcome($testoutcomeserialised);
+                } else {
+                    $testoutcome = @unserialize($testoutcomeserialised, [
+                        'allowed_classes' => self::ALLOWED_OUTCOME_CLASSES,
+                    ]);
+                }
                 if ($testoutcome instanceof qtype_coderunner_testing_outcome && $testoutcome->run_failed()) {
                     return get_string('unknownerror', 'qtype_coderunner');
                 }
@@ -275,7 +298,9 @@ class qbehaviour_adaptive_adapted_for_coderunner extends qbehaviour_adaptive {
             if (method_exists($this->question, 'unserialize_outcome')) {
                 $testoutcome = $this->question->unserialize_outcome($testoutcomeserialised);
             } else {
-                $testoutcome = unserialize($testoutcomeserialised);
+                $testoutcome = unserialize($testoutcomeserialised, [
+                    'allowed_classes' => self::ALLOWED_OUTCOME_CLASSES,
+                ]);
             }
             if (isset($testoutcome->graderstate)) {
                 $graderstate = $testoutcome->graderstate;
